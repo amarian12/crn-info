@@ -1,0 +1,456 @@
+<div class="">   
+    <div *ngIf="tabSelected === 'RelayNodes'" class="p-grid  mb-2" style="margin-top: 5em;">
+        <div class="ui-inputgroup p-col-8 p-offset-2">
+            <button pButton  icon="pi pi-globe" (click)="getCountriesSigned()" style="width: 30%" class="ui-button-success colorFoundation" label="Nodes signed by region"></button>
+            <span class="ui-inputgroup-addon"><i class="fas fa-cube " style="line-height: 1.25;"></i></span>   
+            <input type="text" pInputText [(ngModel)]="textSearch" style="width: 100%" (keyup)='search($event)' placeholder="Search RelayNode by Name, AccountId, Public Key"> 
+            <button pButton type="button" icon="fas fa-search " class="ui-button colorFoundation "></button>    
+        </div>
+    </div>
+
+    <div *ngIf="tabSelected === 'CRN Rounds'" class="p-grid  mb-2" style="margin-top: 5em;">
+        <div class="ui-inputgroup p-col-8 p-offset-2">
+            <button pButton  icon="pi pi-globe" (click)="getCountriesSigned()" style="width: 30%" class="ui-button-success colorFoundation" label="Nodes signed by region"></button>
+            <span class="ui-inputgroup-addon" style="font-size: 12px"><i class="fas fa-book " style="line-height: 1.25;"></i></span>   
+            <input type="text" pInputText [(ngModel)]="textSearchRounds" style="width: 100%" (keyup)='searchRounds($event)' placeholder="Search by ledger Version and hash Ledger"> 
+            <button pButton type="button" icon="fas fa-search " class="ui-button colorFoundation "></button>    
+        </div>
+    </div>
+
+    <div class="mb-3 m-5">
+        <div class="p-grid mb-2">
+            <div class="p-col-9 d-flex" style="text-align: initial;">
+                <p> <strong>Next Crn Round: </strong> <span class="badge colorFoundation" style="font-size: 12px;"> {{nextCrnRound ? nextCrnRound : 0}}</span></p>
+                <p class="mr-3 ml-3"> <strong>Last check CRNS: </strong>
+                     <span class="badge badge-success" style="font-size: 11px;" *ngIf="lastCheckRelayNodeChecks"> 
+                        {{lastCheckRelayNodeChecks ? (lastCheckRelayNodeChecks | date:'medium' : 'UTC') : 'Please wait for date Verification' }} - UTC
+                    </span> 
+                    <span style="font-size: 11px;" *ngIf="!lastCheckRelayNodeChecks">
+                        Please wait for date Verification...
+                        <p-progressSpinner class="" [style]="{width: '15px', height: '15px'}" strokeWidth="2" fill="#EEEEEE" animationDuration=".5s"></p-progressSpinner> 
+                    </span> 
+                </p>
+                <p class="mr-3" ><strong>Next check CRNS: </strong> 
+                    <span class="badge badge-info" style="font-size: 11px;" *ngIf="nextCheckRelayNodeChecks">
+                    {{nextCheckRelayNodeChecks ? (nextCheckRelayNodeChecks | date : 'medium' : 'UTC') : 'Please wait for date Verification' }} - UTC</span>
+                    <span style="font-size: 11px;" *ngIf="!nextCheckRelayNodeChecks">
+                        Please wait for date Verification...
+                        <p-progressSpinner class="" [style]="{width: '15px', height: '15px'}" strokeWidth="2" fill="#EEEEEE" animationDuration=".5s"></p-progressSpinner> 
+                    </span> 
+                </p>
+            </div>
+            <div class="p-col-2" *ngIf="tabSelected === 'RelayNodes'" style="text-align: end;">
+                <p-dropdown [options]="OptionsNodes" [(ngModel)]="optionFilterStateRN"  [showClear]="true" placeholder="Select Option.."
+                (ngModelChange)="filterStateRn(optionFilterStateRN ? optionFilterStateRN : null)"  >
+                    <ng-template let-item pTemplate="selectedItem">
+                        <i *ngIf="item.label === 'RelayNode Ok'" class="fas text-success fa-check-circle fa-1x"></i>
+                        <i *ngIf="item.label === 'RelayNode Fail'" class="fas text-danger fa-times-circle fa-1x"></i>
+                        <span style="vertical-align:middle; margin-left: .5em; margin-right: 15px;">{{item.label}}</span>
+                    </ng-template>
+                    <ng-template let-option pTemplate="item">
+                        <div class="ui-helper-clearfix" style="position: relative;  height: 25px;">
+                            <div style="font-size:14px;float:right;margin-top:4px">{{option.label}}</div>
+                            <i  *ngIf="option.label === 'RelayNode Ok'" class="fas text-success fa-check-circle fa-1x"></i>
+                            <i  *ngIf="option.label === 'RelayNode Fail'" style="height: 25px" class="fas text-danger fa-times-circle fa-1x"></i>
+                        </div>
+                    </ng-template>
+                </p-dropdown>
+            </div>
+
+            <div class="p-col-1" *ngIf="tabSelected === 'RelayNodes'" style="text-align: end;">
+               <p ><strong>CRN </strong> <span class="badge colorFoundation"> {{totalRelaynodes ? totalRelaynodes : 0}}</span></p>
+            </div>
+            <div class="p-col-3" *ngIf="tabSelected === 'CRN Rounds'" style="text-align: end;">
+               <p><strong>Previous CRN Rounds: </strong> <span class="badge colorFoundation"> {{totalLedgerInfo ? totalLedgerInfo : 0}}</span></p>
+            </div>
+        </div>
+
+        <div class="mb-2">
+            <p-tabMenu [model]="items" [(activeItem)]="activeTab"></p-tabMenu>
+        </div>
+
+        <p-table *ngIf="relayNodesServerListTemp && tabSelected === 'RelayNodes'" [columns]="cols" [paginator]="true" [rows]="25" [value]="relayNodesServerListTemp" 
+            dataKey="serverName" rowExpandMode="single"  [resizableColumns]="true" [rowsPerPageOptions]="[25, 50, 100, 250, 500, 1000]">
+            <ng-template pTemplate="caption" class="colorFoundation">
+                <h6><strong>Community Relay Nodes </strong> </h6>
+            </ng-template>
+
+            <ng-template pTemplate="colgroup" let-columns>
+                <colgroup>
+                    <col *ngFor="let col of columns" [style.width]="col.width">
+                </colgroup>
+            </ng-template>
+
+            <ng-template pTemplate="header" let-columns>
+                <tr  style="text-align: center;" >
+                    <th *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field">
+                        {{col.header}}
+                        <p-sortIcon [field]="col.field"></p-sortIcon>
+                    </th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-rowData let-expanded="expanded" let-columns="columns">
+                <tr (click)="onRowSelect(rowData)" [pSelectableRow]="rowData" [pRowToggler]="rowData" >
+                    <td *ngFor="let col of columns" class="ui-resizable-column" style="cursor: pointer;" class="text-center" >
+                        <div>
+                            <p *ngIf="col.field === 'enabled' ">
+                                <i *ngIf="rowData[col.field] === true" style="font-size: 20px; " class="fas text-success fa-check-circle"></i>
+                                <i *ngIf="rowData[col.field] === false" style="font-size: 20px;" class="fas text-danger fa-times-circle"></i>    
+                            </p>
+                            <p> {{col.field === 'enabled' ? null : rowData[col.field]}}</p>
+                            <h6 *ngIf="col.field === 'crn_account_id' && !rowData[col.field]"> 
+                                <span class="badge badge-warning">
+                                    <i class="fas fa-exclamation fa-1x text-danger"> </i>
+                                    AccountId Not Found 
+                                </span>
+                            </h6>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="rowexpansion" let-rowData let-columns="columns">
+                <tr>
+                    <td [attr.colspan]="columns.length + 1">
+                        <div class="ui-g ui-fluid" style="font-size:16px;padding:20px">
+                            <div class="card">
+                                <div class="card-header colorFoundation text-center">
+                                    <b><strong>{{rowData.name}}</strong></b> 
+                                </div>
+                                <div class="card-body">
+                                    <div class="ui-g-12 ui-md-2" style="text-align:center">
+                                        <i class="fas fa-cube fa-5x mt-5 text-danger"></i>
+                                    </div>
+                                    <div class="ui-g-12 ui-md-6 card">
+                                        <div class="ui-g">
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>Server Name:</b> {{rowData.serverName}}
+                                            </div>
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>Name:</b> {{rowData.name}}
+                                            </div>
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>Public Key:</b> {{rowData.publicKey}}
+                                            </div>
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>Enabled:  
+                                                    <i *ngIf="rowData.enabled === true" style="font-size: 20px; " class="fas text-success fa-check-circle"></i>
+                                                    <i *ngIf="rowData.enabled === false" style="font-size: 20px;" class="fas text-danger fa-times-circle"></i>  
+                                                </b> 
+                                            </div>
+                                            <div class="ui-g-12" *ngIf="rowData.status !== 'Ok' || !rowData.status " style="padding: .5px;">
+                                                <b>Status: <span class="badge badge-warning" > <i class="fas fa-exclamation text-danger"></i> {{rowData.status ? rowData.status : 'Not Found Status'}}</span></b> 
+                                            </div>
+                                            <div class="ui-g-12" *ngIf="rowData.status === 'Ok'" style="padding: .5px;">
+                                                <b>Status:<span class="badge badge-success ml-2" >{{rowData.status}}</span></b> 
+                                            </div>
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>Web Socket:</b> {{rowData.webSocket}}
+                                            </div>
+                                            <div class="ui-g-12" *ngIf="rowData.crn_fee_distributed" style="padding: .5px;">
+                                                <b>Fees: </b> <span class="badge  colorFoundation">{{ConvertFees(rowData.crn_fee_distributed) }} CSC</span> 
+                                            </div>
+                                            <div class="ui-g-12" *ngIf="!rowData.crn_fee_distributed" style="padding: .5px;">
+                                                <b>Fees: </b> <span class="badge  badge-warning"><i class="fas fa-exclamation text-danger"></i> Not Found Fees </span> 
+                                            </div>
+                                            <div class="ui-g-12" *ngIf="rowData.crn_account_id" style="padding: .5px;">
+                                                <b>CRN accountId:</b> {{rowData.crn_account_id}}
+                                            </div>
+                                            <div class="ui-g-12" *ngIf="!rowData.crn_account_id" style="padding: .5px;">
+                                                <b>CRN accountId:</b> <span class="badge  badge-warning"><i class="fas fa-exclamation text-danger"></i>  AccountId Not Found </span> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="ui-g-12 ui-md-3 card ml-2">
+                                        <div class="ui-g" *ngIf="selectedCRN && selectedCRN !== 'Error'" >
+                                            <div class="ui-g-12" *ngIf="selectedCRN.info.balance" style="padding: .5px;">
+                                                <b>Balance: </b> <span class="badge colorFoundation">{{ConvertFees(selectedCRN.info.balance) }} CSC</span> 
+                                            </div>
+                                            <div class="ui-g-12" *ngIf="!selectedCRN.info.balance"style="padding: .5px;">
+                                                <b>Balance: </b> <span class="badge badge-warning"><i class="fas fa-exclamation text-danger"></i> No Balance</span> 
+                                            </div>
+                                            <hr>
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>Build Version: </b> {{selectedCRN.info.build_version }}
+                                            </div>
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>Complete Ledgers:</b> {{selectedCRN.info.complete_ledgers }}
+                                            </div>
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>Peers:</b> {{selectedCRN.info.peers }}
+                                            </div>
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>Server State:</b> {{selectedCRN.info.server_state }}
+                                            </div>
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>Host id:</b> {{selectedCRN.info.hostid }}
+                                            </div>
+                                            <div class="ui-g-12" style="padding: .5px;">
+                                                <b>IO Latency:</b> {{selectedCRN.info.io_latency_ms }}
+                                            </div>
+                                        </div>
+                                        <div *ngIf="!selectedCRN" class="text-center d-flex justify-content-center" style="margin-top: 4.5em; margin-bottom: 2em;">
+                                            <p-progressSpinner class="" [style]="{width: '60px', height: '60px'}" strokeWidth="2" fill="#EEEEEE" animationDuration=".5s"></p-progressSpinner>
+                                            <p class="text-center" style="margin-top: 17px;">Connecting...</p>
+                                        </div>
+                                        <div *ngIf="selectedCRN === 'Error'" class="text-center" style="margin-top: 4.5em; margin-bottom: 4.2em;" >
+                                            <i class="fas fa-exclamation-circle fa-2x text-danger"></i>
+                                            <p class=" margin-bottom: 2.3em;">Connection Failed...</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage" let-columns>
+                <tr>
+                    <td [attr.colspan]="columns.length + 1">
+                        <div class="alert alert-dark text-center m-4" role="alert">
+                            <span class="badge badge-dark" style="width: 100%;"><h6 class="m-2"><strong>There are no CRN rounds in your search !</strong></h6></span>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+
+        <!-- -------------------------------------------------------Table CRN Rounsd----------------------------------------------------------- -->
+        <p-table *ngIf="ledgerInfoTemp.length > 0 && tabSelected === 'CRN Rounds' || textSearchRounds && tabSelected === 'CRN Rounds' " [columns]="cols2" [paginator]="true" [rows]="25" [value]="ledgerInfoTemp" 
+            dataKey="ledgerVersion" selectionMode="single" [(selection)]="selectedHash" (onRowSelect)="onRowSelectLedgerHash(selectedHash)" 
+            [resizableColumns]="true" [rowsPerPageOptions]="[25, 50, 100, 250, 500, 1000]"  >
+            <ng-template pTemplate="caption" class="colorFoundation">
+                <h6><strong>Community Relay Nodes Rounds</strong> </h6>
+            </ng-template>
+
+            <ng-template pTemplate="colgroup" let-columns>
+                <colgroup>
+                    <col *ngFor="let col of columns" [style.width]="col.width">
+                </colgroup>
+            </ng-template>
+
+            <ng-template pTemplate="header" let-columns>
+                <tr  style="text-align: center;" >
+                    <th *ngFor="let col of columns" pResizableColumn [pSortableColumn]="col.field">
+                        {{col.header}}
+                        <p-sortIcon [field]="col.field"></p-sortIcon>
+                    </th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-rowData let-expanded="expanded" let-columns="columns">
+                <tr [pSelectableRow]="rowData" >
+                    <td *ngFor="let col of columns" class="ui-resizable-column" style="cursor: pointer;" class="text-center" >
+                        <div>
+                            <p *ngIf="col.field === 'ledgerVersion'"> {{rowData[col.field]}}</p>
+                            <p *ngIf="col.field === 'transactionHash'"> {{rowData[col.field]}}</p>
+                            <p *ngIf="col.field === 'closeTime'"> {{rowData[col.field] | date:'medium'}}</p>
+                            <p *ngIf="col.field === 'FeesDistributed'"> <span class="badge colorFoundation" style="font-size: 12px;"> {{ConvertFees(rowData[col.field])}} CSC</span></p>
+                            <p *ngIf="!rowData[col.field]"> 
+                                <span class="badge badge-warning">
+                                    <i class="fas fa-exclamation fa-1x text-danger"> </i>
+                                    Not Found..
+                                </span>
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="emptymessage" let-columns>
+                <tr>
+                    <td [attr.colspan]="columns.length + 1">
+                        <div class="alert alert-dark text-center m-4" role="alert">
+                            <span class="badge badge-dark" style="width: 100%;"><h6 class="m-2"><strong>There are no CRN rounds in your search !</strong></h6></span>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+
+        <p-dialog  *ngIf="tabSelected === 'CRN Rounds' && selectedAccount" header="Rounds Info" [(visible)]="displayDialogLedgerHash"  [responsive]="true"
+            showEffect="fade" [modal]="true"  [style]="{width: '800px'}" >
+            <div class="ui-g ui-fluid card bg-dark m-1 mb-2 statePadding" style="color: white;">
+                <div class="ui-g-12 statePadding">
+                    <div class="ui-g-3 statePadding">
+                        <label for="vin"><strong>ledgerVersion:</strong></label>
+                    </div>
+                    <div class="ui-g-9 statePadding">
+                        <p>{{selectedAccount.ledgerVersion}}</p>
+                    </div>
+                </div>
+                <div class="ui-g-12 statePadding">
+                    <div class="ui-g-3 statePadding">
+                        <label for="vin"><strong>transactionHash:</strong></label>
+                    </div>
+                    <div class="ui-g-9 statePadding">
+                        <p>{{selectedAccount.transactionHash}}</p>
+                    </div>
+                </div>
+                <div class="ui-g-12 statePadding">
+                    <div class="ui-g-3 statePadding">
+                        <label for="vin"><strong>closeTime:</strong></label>
+                    </div>
+                    <div class="ui-g-9 statePadding">
+                        <p>{{selectedAccount.closeTime | date:'medium'}}</p>
+                    </div>
+                </div>
+                <div class="ui-g-12 statePadding">
+                    <div class="ui-g-3 statePadding">
+                        <label for="vin"><strong>FeesDistributed:</strong></label>
+                    </div>
+                    <div class="ui-g-3 statePadding">
+                        <span class="badge colorFoundation" style="font-size: 14px;" > {{selectedAccount.FeesDistributed ? ConvertFees(selectedAccount.FeesDistributed) : 0 }} CSC</span>
+                    </div>
+                    <div class="ui-g-6 statePadding" style="text-align: end;">
+                        <p> <strong>Total Nodes: </strong> <span class="badge colorFoundation" style="font-size: 12px;"> {{totalAccounts ? totalAccounts : 0}}</span> </p>
+                    </div>
+                </div>
+                <hr style="border-top: 1px solid #ffff; margin-top: 0px; margin-bottom: 4px;">
+                <div class="m-2">
+                    <p-table [columns]="colsCrnInfo" [value]="selectedAccountTemp.crns" [scrollable]="true" scrollHeight="300px" [resizableColumns]="true">
+                        <ng-template pTemplate="caption">
+                            <div style="text-align: center">        
+                                <i class="fa fa-search" style="margin:4px 4px 0 0"></i>
+                                <input type="text" pInputText size="50" placeholder="Search accountId" (input)="filterAccountId($event.target.value)" [(ngModel)]="textAccountID" style="width:auto">
+                            </div>
+                        </ng-template>
+                        <ng-template pTemplate="colgroup" let-columns>
+                            <colgroup>
+                                <col *ngFor="let col of columns" [style.width]="col.width">
+                            </colgroup>
+                        </ng-template>
+                        <ng-template pTemplate="header" let-columns>
+                            <tr class="text-center bg-dark" >
+                                <th *ngFor="let col of columns" pResizableColumn>
+                                    {{col.header}}
+                                </th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-rowData let-columns="columns">
+                            <tr class="text-center" >
+                                <td *ngFor="let col of columns"class="ui-resizable-column" id="" >
+                                    <a href="#"*ngIf="col.field === 'publicKey'" (click)="searchPublicKey(rowData[col.field])">{{rowData[col.field]}}</a>
+                                    <p *ngIf="col.field === 'value'">{{rowData[col.field]}} - {{rowData['currency']}}</p>
+                                </td>
+                            </tr>
+                        </ng-template>
+                         <ng-template pTemplate="emptymessage" let-columns>
+                            <tr>
+                                <td [attr.colspan]="columns.length + 1">
+                                    <div class="alert alert-dark text-center m-4" role="alert">
+                                        <span class="badge badge-dark" style="width: 100%;"><h6 class="m-2"><strong>There are no Rounds info in your search !</strong></h6></span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+        </p-dialog>
+
+        <p-dialog header = "CRN Proprieties" [(visible)]="displayDialogProprieties" *ngIf="crnsTemp"  [focusOnShow]="false" [responsive]="true" showEffect="fade" 
+            [modal]="true"  [style]="{width: '550px'}" >
+            <div class="ui-g ui-fluid card">
+                <div class="ui-g-12 text-center mt-1">
+                        <i class="fas fa-compress-arrows-alt fa-5x text-danger mr-1"></i>
+                        <p> <strong class="textColor">C</strong>R<strong class="textColor">N</strong> </p>
+                </div>
+                <div class="ui-g ui-fluid card m-1">
+                    <div class="ui-g-12">
+                        <div class="ui-g-3">
+                            <label for="vin"><strong>Hash:</strong></label>
+                        </div>
+                        <div class="ui-g-9">
+                            <p>{{crns.hash}}</p>
+                        </div>
+                    </div>
+                    <div class="ui-g-12">
+                        <div class="ui-g-3">
+                            <label for="year"><strong>Seq:</strong> </label>
+                        </div>
+                        <div class="ui-g-9">
+                            <p>{{crns.seq}}</p>
+                        </div>
+                    </div>
+                    <div class="ui-g-12">
+                        <div class="ui-g-3">
+                            <label for="brand"><strong> Total Coins:</strong></label>
+                        </div>
+                        <div class="ui-g-9">
+                            <p>{{crns.total_coins}}</p>
+                        </div>
+                    </div>
+                    <div class="ui-g-12">
+                        <div class="ui-g-3">
+                            <label for="brand"><strong> Fee Distributed:</strong></label>
+                        </div>
+                        <div class="ui-g-9">
+                            <p></p>
+                            <span class="badge colorFoundation" style="font-size: 1em;"> {{ConvertFees(crns.crn_fee_distributed)}} CSC</span>
+                        </div>
+                    </div>
+                    <div class="ui-g-12">
+                        <div class="ui-g-3">
+                            <label for="brand"><strong> Last Ledger:</strong></label>
+                        </div>
+                        <div class="ui-g-9">
+                            <p>{{crns.crn_last_ledger}}</p>
+                        </div>
+                    </div>
+                    <div class="ui-g-12">
+                        <div class="ui-g-3">
+                            <label for="brand"><strong> Total CRNS:</strong></label>
+                        </div>
+                        <div class="ui-g-9">
+                            <p>{{crns.crns.length}}</p>
+                        </div>
+                    </div>
+                    <div class="ui-g-12">
+                        <div class="ui-g-3">
+                            <label for="brand"><strong> Rounds:</strong></label>
+                        </div>
+                        <div class="ui-g-9">
+                             <i  *ngIf="crns.crn_rounds === true " style="font-size: 20px;" class="fas text-success fa-check-circle "></i>
+                            <i  *ngIf="crns.crn_rounds === false " style="font-size: 20px;" class="fas text-danger fa-times-circle "></i>
+                        </div>
+                    </div>
+                </div>
+             </div>
+        </p-dialog>
+
+        <p-dialog header="Nodes Registered By Region" [(visible)]="displaySigned" [modal]="true" [responsive]="true" [style]="{width: '475px', minWidth: '400px'}" >
+            <div>
+                <p-table [columns]="colsCountriesSigned" [value]="countriesSigned" [style]="{width: '450px', minWidth: '400px'}">
+                    <ng-template pTemplate="header" let-columns>
+                        <tr class=" text-center">
+                            <th *ngFor="let col of columns">
+                                {{col.header}}
+                            </th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-car let-columns="columns">
+                        <tr class=" text-center">
+                            <td *ngFor="let col of columns">
+                                    {{car[col.field]}}
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>  
+            <div class="p-col-12"  style="text-align: center;">
+               <p ><strong>Total CRNs: </strong> <span class="badge colorFoundation" style="font-size: 12px;"> {{totalRelaynodes ? totalRelaynodes : 0}}</span></p>
+            </div>
+        </p-dialog>
+                
+        <div *ngIf="!relayNodesServerListTemp && tabSelected === 'RelayNodes' " style="text-align: center; margin-top: 10em;">
+            <p-progressSpinner></p-progressSpinner>
+            <h6>Connecting...</h6>
+        </div>
+        <div *ngIf="ledgerInfoTemp.length === 0 && tabSelected === 'CRN Rounds' && !textSearchRounds" style="text-align: center; margin-top: 10em;">
+            <p-progressSpinner></p-progressSpinner>
+            <h6>Connecting...</h6>
+        </div>
+    </div>
+</div>

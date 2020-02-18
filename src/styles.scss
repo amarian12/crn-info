@@ -1,0 +1,79 @@
+/* You can add global styles to this file, and also import other style files */
+@import 'variables';
+@import '../node_modules/bootstrap/scss/bootstrap';
+
+.ui-table-caption {
+    border-radius: 6px 6px 0px 0px;
+    background-color: #343A40;
+    color: white;
+}
+
+
+.ui-dropdown .ui-dropdown-trigger {
+    background-color: #bf0a0a; 
+    color: #ffffff;
+}
+
+// .ui-table .ui-table-tbody > tr > td {
+//     background-color: #ffffff;
+//     color: black;
+// }
+
+.ui-table .ui-sortable-column.ui-state-highlight {
+    background-color: #bf0a0a; 
+    color: #ffffff;
+}
+
+.ui-dialog-titlebar {
+    background-color: #343A40;
+    color: white;
+    font-size: 15px;;
+}
+
+.ui-dialog .ui-dialog-titlebar-icon {
+    color: #ffffff;
+    background-color: #bf0a0a;
+}
+
+.ui-tabmenu .ui-menuitem-icon {
+    color: dimgrey;
+}
+
+.ui-state-active a {
+    color: #bf0a0a;
+}
+
+.ui-table .ui-table-tbody > tr.ui-state-highlight{
+    background-color: #343A40; 
+    color: #ffffff;
+}
+
+p {
+    margin-bottom: 0.3rem;
+}
+
+.ui-state-highlight {
+    background-color: #ffffff;
+    color: black;
+}
+
+.statePadding {
+    padding: 0.3em;
+}
+
+.card-header {
+    padding: 0.2rem 1.25rem;
+}
+
+.ui-widget-content {
+    background-color: #ffffff;
+}
+
+.ui-table .ui-table-thead > tr > th {
+    color: #ffffff;
+    background-color: #343A40; ;
+}
+
+.pi-sort:before {
+    color: #bf0a0a;
+}
