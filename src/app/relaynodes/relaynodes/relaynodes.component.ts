@@ -4,7 +4,7 @@ import { CRNS, CRN } from '../../interfaces/crn';
 import { RelayNodes } from '../../interfaces/relayNodesServerList';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { Subscription } from 'rxjs';
-import { MenuItem } from 'primeng/api';
+import { MenuItem, LazyLoadEvent } from 'primeng/api';
 import { CountriesRelayNodes } from '../countries';
 
 
@@ -64,6 +64,8 @@ export class RelaynodesComponent implements OnInit {
   public colsCountriesSigned;
   public countriesSigned = [];
   public countriesRelayNodes = CountriesRelayNodes;
+  public loading = false;
+  public CRNTXHistory;
 
   constructor(
     private apiService: ApiserviceService
@@ -98,8 +100,10 @@ export class RelaynodesComponent implements OnInit {
               // console.log('element', history);
               const CRNTXHistory: string[] = history.specification.CRNTXHistory;
               CRNTXHistory.reverse();
-              // console.log(CRNTXHistory.length);
-              this.apiService.findTransactions(CRNTXHistory);
+              this.CRNTXHistory = CRNTXHistory;
+              this.totalLedgerInfo = CRNTXHistory.length; 
+              // console.log('CRNTXHistory', CRNTXHistory);
+              // this.apiService.findTransactions(CRNTXHistory);
             }
           });
             // .catch((err) => console.log('Error getting info of Ledger', err));
@@ -134,11 +138,11 @@ export class RelaynodesComponent implements OnInit {
       }
     });
 
+    // connect subject for transactions;
     this.apiService.getTransactions().subscribe((tx) => {
       if (tx) {
         this.ledgerInfoTemp.push(tx);
-        this.ledgerInfo = this.ledgerInfoTemp;
-        this.totalLedgerInfo = this.ledgerInfoTemp.length;
+        // this.ledgerInfo = this.ledgerInfoTemp;
         this.ledgerInfoTemp.sort((a, b) => {
           return b.ledgerVersion - a.ledgerVersion;
         });
@@ -209,7 +213,7 @@ export class RelaynodesComponent implements OnInit {
     // setInterval(() => { getLastCheckRelayNodeChecks(); }, 10000);
   }
 
-  getCountriesSigned(){
+  getCountriesSigned() {
     this.displaySigned = true;
   }
 
@@ -232,22 +236,46 @@ export class RelaynodesComponent implements OnInit {
     this.totalRelaynodes = this.relayNodesServerListTemp.length;
   }
 
+  loadCarsLazy(event: LazyLoadEvent) {
+    console.log(event);
+    this.ledgerInfoTemp = [];
+    const arr = this.CRNTXHistory.slice(event.first, (event.first + event.rows));
+    this.apiService.findTransactions(arr);
+  }
+
   searchRounds(event) {
-    const value = event.target.value.toLowerCase();
-    const temp = [];
-    const values = ['ledgerVersion', 'transactionHash'];
-    for (const relayNode of this.ledgerInfo) {
-      for (const key in relayNode) {
-        if (relayNode[key] !== null && values.includes(key)) {
-          if (relayNode[key].toString().toLowerCase().includes(value)) {
-            temp.push(relayNode);
-            break;
-          }
-        }
-      }
+    console.log(event);
+    const value = event.toLowerCase();
+    const arr = this.CRNTXHistory.filter( val => val.toString().toLowerCase() === value);
+    console.log(arr);
+    if (arr.length > 0) {
+      if (this.ledgerInfoTemp.length === 25) { this.ledgerInfo = this.ledgerInfoTemp; }
+      this.ledgerInfoTemp = [];
+      this.apiService.findTransactions(arr);
+    } else {
+      console.log('error');
     }
-    this.ledgerInfoTemp = temp;
-    this.totalLedgerInfo = this.ledgerInfoTemp.length;
+    // const temp = [];
+    // const values = ['ledgerVersion', 'transactionHash'];
+    // for (const relayNode of this.ledgerInfo) {
+    //   for (const key in relayNode) {
+    //     if (relayNode[key] !== null && values.includes(key)) {
+    //       if (relayNode[key].toString().toLowerCase().includes(value)) {
+    //         temp.push(relayNode);
+    //         break;
+    //       }
+    //     }
+    //   }
+    // }
+    // this.ledgerInfoTemp = temp;
+    // this.totalLedgerInfo = this.ledgerInfoTemp.length;
+  }
+
+  restoreTemp() {
+    console.log('ledgerInfo', this.ledgerInfo);
+    this.textSearchRounds = null;
+    this.ledgerInfoTemp = this.ledgerInfo;
+
   }
 
   onRowSelect(crn: any) {
@@ -265,6 +293,9 @@ export class RelaynodesComponent implements OnInit {
     this.activeTab = this.items[0];
     this.tabSelected = 'RelayNodes';
     this.textSearch = publicKey;
+    this.displayDialogLedgerHash = false;
+    this.selectedAccount = null;
+    this.textSearchRounds = null;
     // this.selectedAccountTemp.crns = this.selectedAccount.crns;
     const temp = [];
     const value = publicKey.toLowerCase();

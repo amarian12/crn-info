@@ -12,8 +12,13 @@
         <div class="ui-inputgroup p-col-8 p-offset-2">
             <button pButton  icon="pi pi-globe" (click)="getCountriesSigned()" style="width: 30%" class="ui-button-success colorFoundation" label="Nodes signed by region"></button>
             <span class="ui-inputgroup-addon" style="font-size: 12px"><i class="fas fa-book " style="line-height: 1.25;"></i></span>   
-            <input type="text" pInputText [(ngModel)]="textSearchRounds" style="width: 100%" (keyup)='searchRounds($event)' placeholder="Search by ledger Version and hash Ledger"> 
-            <button pButton type="button" icon="fas fa-search " class="ui-button colorFoundation "></button>    
+            <input type="text" pInputText [(ngModel)]="textSearchRounds" style="width: 100%" (keyup.enter)='searchRounds(textSearchRounds)' placeholder="Search by ledger Version and hash Ledger"> 
+            <button pButton type="button" icon="fas fa-search "  (click)="searchRounds(textSearchRounds)" class="ui-button colorFoundation "></button>  
+            <span *ngIf="textSearchRounds" style="margin-left:-60px; margin-top: 2px;">
+                <button (click)="restoreTemp()" style="border:none; outline: none; position: relative; width:0;background-color: inherit;">
+                <i class="pi pi-times"></i>
+            </button>
+        </span>  
         </div>
     </div>
 
@@ -218,9 +223,10 @@
         </p-table>
 
         <!-- -------------------------------------------------------Table CRN Rounsd----------------------------------------------------------- -->
-        <p-table *ngIf="ledgerInfoTemp.length > 0 && tabSelected === 'CRN Rounds' || textSearchRounds && tabSelected === 'CRN Rounds' " [columns]="cols2" [paginator]="true" [rows]="25" [value]="ledgerInfoTemp" 
-            dataKey="ledgerVersion" selectionMode="single" [(selection)]="selectedHash" (onRowSelect)="onRowSelectLedgerHash(selectedHash)" 
-            [resizableColumns]="true" [rowsPerPageOptions]="[25, 50, 100, 250, 500, 1000]"  >
+        <p-table *ngIf=" tabSelected === 'CRN Rounds' || textSearchRounds && tabSelected === 'CRN Rounds' " [columns]="cols2" 
+            [value]="ledgerInfoTemp" [lazy]="true" (onLazyLoad)="loadCarsLazy($event)" [paginator]="true" dataKey="ledgerVersion" selectionMode="single"
+            [totalRecords]="totalLedgerInfo" [loading]="loading" [rows]="25"
+            [(selection)]="selectedHash" (onRowSelect)="onRowSelectLedgerHash(selectedHash)" [resizableColumns]="true" >
             <ng-template pTemplate="caption" class="colorFoundation">
                 <h6><strong>Community Relay Nodes Rounds</strong> </h6>
             </ng-template>
@@ -261,8 +267,9 @@
             <ng-template pTemplate="emptymessage" let-columns>
                 <tr>
                     <td [attr.colspan]="columns.length + 1">
-                        <div class="alert alert-dark text-center m-4" role="alert">
-                            <span class="badge badge-dark" style="width: 100%;"><h6 class="m-2"><strong>There are no CRN rounds in your search !</strong></h6></span>
+                        <div class=" text-center m-4">
+                            <p-progressSpinner [style]="{width: '50px', height: '50px'}"></p-progressSpinner>
+                            <h6>Connecting...</h6>
                         </div>
                     </td>
                 </tr>
@@ -445,10 +452,6 @@
         </p-dialog>
                 
         <div *ngIf="!relayNodesServerListTemp && tabSelected === 'RelayNodes' " style="text-align: center; margin-top: 10em;">
-            <p-progressSpinner></p-progressSpinner>
-            <h6>Connecting...</h6>
-        </div>
-        <div *ngIf="ledgerInfoTemp.length === 0 && tabSelected === 'CRN Rounds' && !textSearchRounds" style="text-align: center; margin-top: 10em;">
             <p-progressSpinner></p-progressSpinner>
             <h6>Connecting...</h6>
         </div>

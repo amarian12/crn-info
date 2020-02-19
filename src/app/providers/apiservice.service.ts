@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CasinocoinAPI } from '@casinocoin/libjs';
 import { GetServerInfoResponse } from '@casinocoin/libjs/common/serverinfo';
 import { Observable, Subject } from 'rxjs';
+import { default as config } from '../../../config';
 import { CRNS } from '../interfaces/crn';
 
 @Injectable({
@@ -11,8 +12,9 @@ import { CRNS } from '../interfaces/crn';
 })
 export class ApiserviceService {
 
-  public API_INFO_URL = 'https://apitest.casinocoin.org/1.0.1/info/relaynodes/serverlist';
-  public URL_LAST_CHECK_RELAYNODES = 'https://apitest.casinocoin.org/1.0.0/brm/lastCheckRelayNodeChecks';
+  public API_INFO_URL = config.API_INFO_URL;
+  public URL_LAST_CHECK_RELAYNODES = config.URL_LAST_CHECK_RELAYNODES;
+  public URL_GET_LEDGER = config.URL_GET_LEDGER;
   public cscAPI: CasinocoinAPI;
   public connectToProduction: false;
   public serverInfo: GetServerInfoResponse;
@@ -27,9 +29,9 @@ export class ApiserviceService {
     // define server connection if not yet defined
     if (this.cscAPI === undefined) {
         if (this.connectToProduction) {
-            this.cscAPI = new CasinocoinAPI({ server: 'wss://ws01.casinocoin.org:4443' });
+            this.cscAPI = new CasinocoinAPI({ server: config.CSC_SERVER_PROD });
         } else {
-          this.cscAPI = new CasinocoinAPI({ server: 'wss://wst01.casinocoin.org:4443' });
+          this.cscAPI = new CasinocoinAPI({ server: config.CSC_SERVER_TEST });
           // this.cscAPI = new CasinocoinAPI({ server: 'ws://wst01.casinocoin.org:6006' });
         }
     }
@@ -41,7 +43,10 @@ export class ApiserviceService {
         this.cscAPI.connection.request({ id: 'AccountUpdates', command: 'crn_info' }).then((allCRN: Array<CRNS>) => {
           this.subjectAllCRN.next(allCRN);
         });
-        this.cscAPI.on('disconnected', () => this.cscAPI = undefined);
+        this.cscAPI.on('disconnected', (val) => {
+          console.log('Disconecc', val);
+          // this.cscAPI = undefined;
+        });
 
       }).catch(error => {
         console.log(JSON.stringify(error));
@@ -54,15 +59,15 @@ export class ApiserviceService {
   }
 
   getLastCheckRelayNodeChecks() {
-    return this.httpClient.get(`${this.URL_LAST_CHECK_RELAYNODES}`);
+    return this.httpClient.get(this.URL_LAST_CHECK_RELAYNODES);
   }
 
   getRelayNodesServerList() {
-    return this.httpClient.get(`${this.API_INFO_URL}`);
+    return this.httpClient.get(this.API_INFO_URL);
   }
 
   getLedger(ledger) {
-    return this.httpClient.get(`https://apitest.casinocoin.org/1.0.1/info/ledger/` + ledger);
+    return this.httpClient.get(this.URL_GET_LEDGER + ledger);
   }
 
   getAllCRN(): Observable<any> {
@@ -73,11 +78,12 @@ export class ApiserviceService {
     return await this.cscAPI.getLedger({includeAllData: true, includeTransactions: true, includeState: true, ledgerVersion: ledger});
   }
 
-  findTransactions(array) {
+  async findTransactions(array) {
     if (!array) { return null; }
     for (const hashTransaction of array) {
       if (hashTransaction) {
-        this.cscAPI.getTransaction(hashTransaction).then((values: any) => {
+        try {
+          const values: any = await this.cscAPI.getTransaction(hashTransaction);
           if (values) {
             this.subjectArrayCrn.next({
               ledgerVersion: values.specification.LedgerSequence,
@@ -87,9 +93,9 @@ export class ApiserviceService {
               crns: values.outcome.balanceChanges
             });
           }
-        }).catch((err) => {
-          console.log(`Error get transaction in ${hashTransaction} :` + err);
-        });
+        } catch (error) {
+          console.log(`Error get transaction in ${hashTransaction} :`, error);
+        }
       }
     }
    }
