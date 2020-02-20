@@ -16,7 +16,6 @@ export class ApiserviceService {
   public URL_LAST_CHECK_RELAYNODES = config.URL_LAST_CHECK_RELAYNODES;
   public URL_GET_LEDGER = config.URL_GET_LEDGER;
   public cscAPI: CasinocoinAPI;
-  public connectToProduction: false;
   public serverInfo: GetServerInfoResponse;
   public CRNS: any;
   private subject = new Subject<any>();
@@ -28,12 +27,7 @@ export class ApiserviceService {
   ) {
     // define server connection if not yet defined
     if (this.cscAPI === undefined) {
-        if (this.connectToProduction) {
-            this.cscAPI = new CasinocoinAPI({ server: config.CSC_SERVER_PROD });
-        } else {
-          this.cscAPI = new CasinocoinAPI({ server: config.CSC_SERVER_TEST });
-          // this.cscAPI = new CasinocoinAPI({ server: 'ws://wst01.casinocoin.org:6006' });
-        }
+        this.cscAPI = new CasinocoinAPI({ server: config.CSC_SERVER });
     }
 
     if (!this.cscAPI.isConnected()) {

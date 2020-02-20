@@ -1,11 +1,11 @@
 {
   "name": "crn-info",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "compile-sass-theme": "sass src/styles.scss src/assets/primeng-csc/theme.css",
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --prod",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
