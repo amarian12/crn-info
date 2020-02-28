@@ -89,7 +89,7 @@ export class RelaynodesComponent implements OnInit {
       }
       // get all crn from CSC
       this.apiService.getAllCRN().subscribe((crns: CRNS) => {
-        // console.log('getAllCRN', crns);
+        console.log('### getAllCRN', crns);
         if (crns) {
           // get info on Last ledger
           this.nextCrnRound = crns.crn_last_ledger + 1024;
@@ -109,11 +109,16 @@ export class RelaynodesComponent implements OnInit {
             // .catch((err) => console.log('Error getting info of Ledger', err));
           this.crns = crns;
           this.crnsTemp = this.crns.crns;
+          console.log('### data', data);
           this.relayNodesServerList = data.map((relayNode) => {
-            const findCrn: CRN = this.crnsTemp.find((crn: CRN) =>  crn.crn_public_key === relayNode.publicKey );
-            return { ...findCrn, ...relayNode };
+            if (this.crnsTemp) {
+              const findCrn: CRN = this.crnsTemp.find((crn: CRN) =>  crn.crn_public_key === relayNode.publicKey );
+              return { ...findCrn, ...relayNode };
+            } else {
+              return {...relayNode };
+            }
           });
-          // console.log(this.relayNodesServerList);
+          console.log('### relayNodesServerList: ', this.relayNodesServerList);
           this.relayNodesServerListTemp = this.relayNodesServerList;
           this.totalRelaynodes = this.relayNodesServerListTemp.length;
         }
