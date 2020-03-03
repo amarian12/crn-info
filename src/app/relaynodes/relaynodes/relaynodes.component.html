@@ -224,7 +224,7 @@
 
         <!-- -------------------------------------------------------Table CRN Rounsd----------------------------------------------------------- -->
         <p-table *ngIf=" tabSelected === 'CRN Rounds' || textSearchRounds && tabSelected === 'CRN Rounds' " [columns]="cols2" 
-            [value]="ledgerInfoTemp" [lazy]="true" (onLazyLoad)="loadCarsLazy($event)" [paginator]="true" dataKey="ledgerVersion" selectionMode="single"
+            [value]="ledgerInfoTemp" [lazy]="true" (onLazyLoad)="loadCRNRoundsLazy($event)" [paginator]="true" dataKey="ledgerVersion" selectionMode="single"
             [totalRecords]="totalLedgerInfo" [loading]="loading" [rows]="25"
             [(selection)]="selectedHash" (onRowSelect)="onRowSelectLedgerHash(selectedHash)" [resizableColumns]="true" >
             <ng-template pTemplate="caption" class="colorFoundation">

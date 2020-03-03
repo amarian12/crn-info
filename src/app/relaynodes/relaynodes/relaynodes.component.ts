@@ -94,7 +94,7 @@ export class RelaynodesComponent implements OnInit {
           // get info on Last ledger
           this.nextCrnRound = crns.crn_last_ledger + 1024;
           this.apiService.getLedger(crns.crn_last_ledger).subscribe((value: any) => {
-            // console.log('value', value);
+            console.log('value', value);
             const history = value.transactions.find(item => item.type === 'setCRNRound');
             if (history) {
               // console.log('element', history);
@@ -241,8 +241,7 @@ export class RelaynodesComponent implements OnInit {
     this.totalRelaynodes = this.relayNodesServerListTemp.length;
   }
 
-  loadCarsLazy(event: LazyLoadEvent) {
-    console.log(event);
+  loadCRNRoundsLazy(event: LazyLoadEvent) {
     this.ledgerInfoTemp = [];
     const arr = this.CRNTXHistory.slice(event.first, (event.first + event.rows));
     this.apiService.findTransactions(arr);

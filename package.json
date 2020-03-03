@@ -21,7 +21,7 @@
     "@angular/platform-browser": "~8.2.3",
     "@angular/platform-browser-dynamic": "~8.2.3",
     "@angular/router": "~8.2.3",
-    "@casinocoin/libjs": "file:casinocoin-libjs-2.0.11.tgz",
+    "@casinocoin/libjs": "file:casinocoin-libjs-2.0.14.tgz",
     "@ng-bootstrap/ng-bootstrap": "^5.1.5",
     "angular-font-awesome": "^3.1.2",
     "bootstrap": "^4.4.1",
