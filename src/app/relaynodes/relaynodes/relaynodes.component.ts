@@ -3,7 +3,7 @@ import { ApiserviceService } from '../../providers/apiservice.service';
 import { CRNS, CRN } from '../../interfaces/crn';
 import { RelayNodes } from '../../interfaces/relayNodesServerList';
 import { trigger, state, style, transition, animate } from '@angular/animations';
-import { Subscription } from 'rxjs';
+import { Subscription, Subject, BehaviorSubject } from 'rxjs';
 import { MenuItem, LazyLoadEvent } from 'primeng/api';
 import { CountriesRelayNodes } from '../countries';
 
@@ -54,7 +54,7 @@ export class RelaynodesComponent implements OnInit {
   public selectedAccount: any;
   public totalAccounts: any;
   public activeTab: MenuItem;
-  public subscriptionCRN: Subscription;
+  public subscriptionCRN: BehaviorSubject<boolean>;
   public nextCrnRound: number;
   public selectedAccountTemp: any;
   public textAccountID;
@@ -72,6 +72,7 @@ export class RelaynodesComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.subscriptionCRN = new BehaviorSubject<boolean>(false);
      // get Relaynodes From BRM-API from CSC
     this.apiService.getRelayNodesServerList().subscribe((data: Array<RelayNodes>) => {
 
@@ -101,7 +102,9 @@ export class RelaynodesComponent implements OnInit {
               const CRNTXHistory: string[] = history.specification.CRNTXHistory;
               CRNTXHistory.reverse();
               this.CRNTXHistory = CRNTXHistory;
-              this.totalLedgerInfo = CRNTXHistory.length; 
+              this.totalLedgerInfo = CRNTXHistory.length;
+              this.subscriptionCRN.next(true);
+
               // console.log('CRNTXHistory', CRNTXHistory);
               // this.apiService.findTransactions(CRNTXHistory);
             }
@@ -243,8 +246,12 @@ export class RelaynodesComponent implements OnInit {
 
   loadCRNRoundsLazy(event: LazyLoadEvent) {
     this.ledgerInfoTemp = [];
-    const arr = this.CRNTXHistory.slice(event.first, (event.first + event.rows));
-    this.apiService.findTransactions(arr);
+    this.subscriptionCRN.subscribe( result => {
+      if (result) {
+        const arr = this.CRNTXHistory.slice(event.first, (event.first + event.rows));
+        this.apiService.findTransactions(arr);
+      }
+    });
   }
 
   searchRounds(event) {
